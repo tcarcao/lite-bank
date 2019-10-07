@@ -1,4 +1,4 @@
-package com.litebank.webserver.application.dtos;
+package com.litebank.webserver.application.dtos.moneytransfers;
 
 import java.math.BigDecimal;
 import java.util.UUID;
