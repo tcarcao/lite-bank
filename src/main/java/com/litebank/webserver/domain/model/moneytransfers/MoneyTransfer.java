@@ -1,9 +1,10 @@
 package com.litebank.webserver.domain.model.moneytransfers;
 
 import com.litebank.webserver.domain.model.Aggregate;
+import com.litebank.webserver.domain.model.Event;
 import com.litebank.webserver.domain.model.exceptions.InvalidAmountMoneyTransferException;
 import com.litebank.webserver.domain.model.exceptions.MoneyTransferOriginEqualToDestinationException;
-import com.litebank.webserver.domain.model.moneytransfers.events.MoneyTransferCreatedEvent;
+import com.litebank.webserver.domain.model.moneytransfers.events.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -32,12 +33,72 @@ public class MoneyTransfer extends Aggregate {
         applyNewEvent(createdEvent);
     }
 
+    public void debitedWithSuccess() {
+        Event event;
+
+        if (state == MoneyTransferState.INITIAL) {
+            event = new MoneyTransferDebitRecordedEvent(getId(), LocalDateTime.now(ZoneOffset.UTC), getNextVersion());
+        }
+        else {
+            event = new MoneyTransferFailedDueToInvalidStateEvent(getId(), LocalDateTime.now(ZoneOffset.UTC), getNextVersion());
+        }
+
+        applyNewEvent(event);
+    }
+
+    public void debitedFailedWithInsufficientAmount() {
+        Event event;
+
+        if (state == MoneyTransferState.INITIAL) {
+            event = new MoneyTransferDebitFailedDueToInsufficientFundsEvent(getId(), LocalDateTime.now(ZoneOffset.UTC), getNextVersion());
+        }
+        else {
+            event = new MoneyTransferFailedDueToInvalidStateEvent(getId(), LocalDateTime.now(ZoneOffset.UTC), getNextVersion());
+        }
+
+        applyNewEvent(event);
+    }
+
+    public void finishedWithSuccess() {
+        if (state == MoneyTransferState.DEBITED) {
+            var event1 = new MoneyTransferCreditRecordedEvent(getId(), LocalDateTime.now(ZoneOffset.UTC), getNextVersion());
+            applyNewEvent(event1);
+
+            var event2 = new MoneyTransferSuccessfulEvent(getId(), LocalDateTime.now(ZoneOffset.UTC), getNextVersion());
+            applyNewEvent(event2);
+        }
+        else {
+            var event = new MoneyTransferFailedDueToInvalidStateEvent(getId(), LocalDateTime.now(ZoneOffset.UTC), getNextVersion());
+            applyNewEvent(event);
+        }
+    }
+
     public void apply(MoneyTransferCreatedEvent event) {
         this.fromAccountId = event.getFromAccountId();
         this.toAccountId = event.getToAccountId();
         this.amount = event.getAmount();
         this.currencyCode = event.getCurrencyCode();
         this.state = MoneyTransferState.INITIAL;
+    }
+
+    public void apply(MoneyTransferDebitRecordedEvent event) {
+        this.state = MoneyTransferState.DEBITED;
+    }
+
+    public void apply(MoneyTransferCreditRecordedEvent event) {
+        this.state = MoneyTransferState.CREDITED;
+    }
+
+    public void apply(MoneyTransferDebitFailedDueToInsufficientFundsEvent event) {
+        this.state = MoneyTransferState.INSUFFICIENT_FUNDS;
+    }
+
+    public void apply(MoneyTransferSuccessfulEvent event) {
+        this.state = MoneyTransferState.SUCCESS;
+    }
+
+    public void apply(MoneyTransferFailedDueToInvalidStateEvent event) {
+        this.state = MoneyTransferState.FAILED_WRONG_STATE;
     }
 
     public UUID getFromAccountId() {
