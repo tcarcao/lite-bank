@@ -5,6 +5,7 @@ import com.litebank.webserver.application.interfaces.repositories.MoneyTransferR
 import com.litebank.webserver.domain.model.accounts.Account;
 import com.litebank.webserver.domain.model.exceptions.AccountNotFoundException;
 import com.litebank.webserver.domain.model.moneytransfers.MoneyTransfer;
+import com.litebank.webserver.domain.model.moneytransfers.events.MoneyTransferCreatedEvent;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
@@ -51,6 +52,39 @@ public class MoneyTransferCommandHandlerTest {
 
         ArgumentCaptor<MoneyTransfer> captor = ArgumentCaptor.forClass(MoneyTransfer.class);
         verify(moneyTransferRepository).save(captor.capture());
+
+        assertEquals(1, captor.getValue().getNewEvents().size());
+        assertEquals(MoneyTransferCreatedEvent.class, captor.getValue().getNewerEvent().get().getClass());
+    }
+
+    @Test
+    public void execute_amountIsNotPositive_shouldReturnError() throws AccountNotFoundException {
+        // Arrange
+        var moneyTransferRepository = Mockito.mock(MoneyTransferRepository.class);
+        var accountRepository = Mockito.mock(AccountRepository.class);
+
+        var amount = new BigDecimal(0);
+        var fromAccountId = UUID.randomUUID();
+        var toAccountId = UUID.randomUUID();
+        var currencyCode = "EUR";
+
+        var account = new Account(toAccountId);
+        when(accountRepository.getById(any(UUID.class))).thenReturn(account);
+
+        var command = new MoneyTransferCommand(fromAccountId, toAccountId, amount, currencyCode);
+        var handler = new MoneyTransferCommandHandler(accountRepository, moneyTransferRepository);
+
+        // Act
+        var result = handler.execute(command);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.hasError());
+        assertEquals("InvalidAmount", result.getErrorValidation().getValidation());
+
+        verify(accountRepository, times(1)).getById(ArgumentMatchers.eq(fromAccountId));
+        verify(accountRepository, times(1)).getById(ArgumentMatchers.eq(toAccountId));
+        verify(moneyTransferRepository, never()).save(any());
     }
 
     @Test
@@ -111,6 +145,37 @@ public class MoneyTransferCommandHandlerTest {
 
         verify(accountRepository, times(1)).getById(ArgumentMatchers.eq(fromAccountId));
         verify(accountRepository, times(1)).getById(ArgumentMatchers.eq(toAccountId));
+        verify(moneyTransferRepository, never()).save(any());
+    }
+
+    @Test
+    public void execute_toAccountEqualsToFromAccount_shouldReturnError() throws AccountNotFoundException {
+        // Arrange
+        var moneyTransferRepository = Mockito.mock(MoneyTransferRepository.class);
+        var accountRepository = Mockito.mock(AccountRepository.class);
+
+        var amount = new BigDecimal(10);
+        var moneyTransferId = UUID.randomUUID();
+        var fromAccountId = UUID.randomUUID();
+        var currencyCode = "EUR";
+
+        var account = new Account(fromAccountId);
+        when(accountRepository.getById(any(UUID.class))).thenReturn(account);
+
+        when(moneyTransferRepository.save(any(MoneyTransfer.class))).thenReturn(moneyTransferId);
+
+        var command = new MoneyTransferCommand(fromAccountId, fromAccountId, amount, currencyCode);
+        var handler = new MoneyTransferCommandHandler(accountRepository, moneyTransferRepository);
+
+        // Act
+        var result = handler.execute(command);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.hasError());
+        assertEquals("OriginEqualToDestination", result.getErrorValidation().getValidation());
+
+        verify(accountRepository, times(2)).getById(ArgumentMatchers.eq(fromAccountId));
         verify(moneyTransferRepository, never()).save(any());
     }
 }

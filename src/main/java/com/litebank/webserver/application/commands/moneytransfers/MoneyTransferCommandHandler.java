@@ -6,6 +6,8 @@ import com.litebank.webserver.application.interfaces.cqrs.CommandHandlerR;
 import com.litebank.webserver.application.interfaces.repositories.MoneyTransferRepository;
 import com.litebank.webserver.application.interfaces.repositories.ReadOnlyAccountRepository;
 import com.litebank.webserver.domain.model.exceptions.AccountNotFoundException;
+import com.litebank.webserver.domain.model.exceptions.InvalidAmountMoneyTransferException;
+import com.litebank.webserver.domain.model.exceptions.MoneyTransferOriginEqualToDestinationException;
 import com.litebank.webserver.domain.model.moneytransfers.MoneyTransfer;
 
 import java.util.UUID;
@@ -32,6 +34,10 @@ public class MoneyTransferCommandHandler implements CommandHandlerR<MoneyTransfe
             return new MoneyTransferCreationResultDto(moneyTransferId);
         } catch (AccountNotFoundException e) {
             return new MoneyTransferCreationResultDto(new MoneyTransferValidationDto("AccountNotFound", e.getMessage()));
+        } catch (MoneyTransferOriginEqualToDestinationException e) {
+            return new MoneyTransferCreationResultDto(new MoneyTransferValidationDto("OriginEqualToDestination", e.getMessage()));
+        } catch (InvalidAmountMoneyTransferException e) {
+            return new MoneyTransferCreationResultDto(new MoneyTransferValidationDto("InvalidAmount", e.getMessage()));
         }
     }
 }
