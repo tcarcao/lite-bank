@@ -13,11 +13,16 @@ public class Application {
         var moneyTransferEventsConsumer = DI.getInstance().getMoneyTransferEventsConsumer();
         moneyTransferEventsConsumer.initialize();
 
+        var projectionsEventsConsumer = DI.getInstance().getProjectionsEventsConsumer();
+        projectionsEventsConsumer.initialize();
+
         Javalin app = Javalin.create().start(port);
 
         app.post(Path.TRANSFERS, DI.getInstance().getMoneyTransfersController().startTransfer);
+        app.get(Path.TRANSFERS_ID, DI.getInstance().getMoneyTransfersController().getMoneyTransfer);
 
         app.post(Path.ACCOUNTS, DI.getInstance().getAccountsController().openAccount);
+        app.get(Path.ACCOUNTS_ID, DI.getInstance().getAccountsController().getAccount);
 
         return app;
     }

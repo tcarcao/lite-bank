@@ -1,14 +1,18 @@
 package com.litebank.webserver.presentation.api.controllers;
 
 import com.litebank.webserver.application.commands.moneytransfers.MoneyTransferCommand;
-import com.litebank.webserver.application.dtos.moneytransfers.MoneyTransferCreationResultDto;
-import com.litebank.webserver.application.dtos.moneytransfers.MoneyTransferDto;
-import com.litebank.webserver.application.dtos.moneytransfers.MoneyTransferStateDto;
-import com.litebank.webserver.application.dtos.moneytransfers.TransferRequestDto;
+import com.litebank.webserver.application.dtos.moneytransfers.*;
+import com.litebank.webserver.application.queries.GetMoneyTransferProjectionQuery;
+import com.litebank.webserver.domain.model.moneytransfers.projections.MoneyTransferErrorProjection;
+import com.litebank.webserver.domain.model.moneytransfers.projections.MoneyTransferProjection;
+import com.litebank.webserver.domain.model.moneytransfers.projections.MoneyTransferStateProjection;
 import com.litebank.webserver.presentation.api.di.CommandQueriesFactory;
 import io.javalin.http.Handler;
 
+import java.util.UUID;
+
 public class MoneyTransfersController {
+
     private CommandQueriesFactory commandQueriesFactory;
 
     public MoneyTransfersController(CommandQueriesFactory commandQueriesFactory) {
@@ -34,4 +38,44 @@ public class MoneyTransfersController {
             ctx.json(moneyTransferResult.getErrorValidation());
         }
     };
+
+    public Handler getMoneyTransfer = ctx -> {
+        UUID moneyTransferId = UUID.fromString(ctx.pathParam("moneyTransferId"));
+
+        var handler = commandQueriesFactory.getQueryHandler(GetMoneyTransferProjectionQuery.class, MoneyTransferProjection.class);
+        var query = new GetMoneyTransferProjectionQuery(moneyTransferId);
+
+        var moneyTransfer = handler.execute(query);
+
+        if (moneyTransfer == null) {
+            ctx.status(404);
+        }
+        else {
+            ctx.json(toDto(moneyTransfer));
+        }
+    };
+
+    private static MoneyTransferDto toDto(MoneyTransferProjection moneyTransfer) {
+        return new MoneyTransferDto(moneyTransfer.getMoneyTransferId(), moneyTransfer.getFromAccountId(), moneyTransfer.getToAccountId(), moneyTransfer.getAmount(), moneyTransfer.getCurrencyCode(), toDto(moneyTransfer.getState()), toDto(moneyTransfer.getError()));
+    }
+
+    private static MoneyTransferStateDto toDto(MoneyTransferStateProjection state) {
+        switch (state) {
+            case SCHEDULED:
+                return MoneyTransferStateDto.SCHEDULED;
+            case FAILED:
+                return MoneyTransferStateDto.FAILED;
+            default:
+                return MoneyTransferStateDto.FINISHED;
+        }
+    }
+
+    private static MoneyTransferErrorDto toDto(MoneyTransferErrorProjection error)
+    {
+        if (error == null) {
+            return null;
+        }
+
+        return new MoneyTransferErrorDto(error.getCode(), error.getMessage());
+    }
 }
