@@ -1,4 +1,4 @@
-# lite-bank: A lite traceability, scalable and well though bank
+# lite-bank: A lite traceable, scalable and well though bank
 This project builds a bank with account opening and get operations and with money transfer operations.
 
 To achieve this a system built with CQRS pattern along with EventSourcing to allow the traceability, scalability, transactional problems.
