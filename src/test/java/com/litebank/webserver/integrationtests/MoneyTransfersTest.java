@@ -8,14 +8,12 @@ import com.litebank.clients.java.interfaces.MoneyTransfersClient;
 import com.litebank.webserver.application.dtos.moneytransfers.MoneyTransferStateDto;
 import com.litebank.webserver.presentation.api.Application;
 import com.litebank.webserver.testutils.RetryUtils;
-import io.javalin.Javalin;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -23,37 +21,37 @@ import static org.junit.Assert.fail;
 
 public class MoneyTransfersTest {
 
-    private Javalin app;
+    private Application app;
     private MoneyTransfersClient moneyTransfersClient;
     private AccountsClient accountsClient;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         app = Application.init(8000);
-        var basePath = "http://localhost:" + app.port();
+        var basePath = "http://localhost:" + app.getPort();
         moneyTransfersClient = new MoneyTransfersClientImpl(basePath);
         accountsClient = new AccountsClientImpl(basePath);
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         app.stop();
     }
 
     @Test
-    public void createMoneyTransfer_everythingOk() throws InterruptedException, ExecutionException {
+    public void createMoneyTransfer_everythingOk() {
         // Arrange
         var amount = new BigDecimal(10);
         var currencyCode = "EUR";
 
-        var fromAccount = accountsClient.openAccount(new BigDecimal(100), UUID.randomUUID()).get();
-        var toAccount = accountsClient.openAccount(new BigDecimal(100), UUID.randomUUID()).get();
+        var fromAccount = accountsClient.openAccount(new BigDecimal(100), UUID.randomUUID()).join();
+        var toAccount = accountsClient.openAccount(new BigDecimal(100), UUID.randomUUID()).join();
 
-        RetryUtils.retry(() -> accountsClient.getAccount(fromAccount.getAccountId()).get().orElse(null), 4);
-        RetryUtils.retry(() -> accountsClient.getAccount(toAccount.getAccountId()).get().orElse(null), 4);
+        RetryUtils.retry(() -> accountsClient.getAccount(fromAccount.getAccountId()).join().orElse(null), 4);
+        RetryUtils.retry(() -> accountsClient.getAccount(toAccount.getAccountId()).join().orElse(null), 4);
 
         // Act
-        var moneyTransfer = moneyTransfersClient.createMoneyTransfer(fromAccount.getAccountId(), toAccount.getAccountId(), amount, currencyCode).get();
+        var moneyTransfer = moneyTransfersClient.createMoneyTransfer(fromAccount.getAccountId(), toAccount.getAccountId(), amount, currencyCode).join();
 
         // Assert
         assertNotNull(moneyTransfer);
@@ -63,7 +61,7 @@ public class MoneyTransfersTest {
 
         moneyTransfer = RetryUtils.retry(() -> {
             var tempTransfer = moneyTransfersClient.getMoneyTransfer(moneyTransferId)
-                    .get()
+                    .join()
                     .orElse(null);
 
             if (tempTransfer != null && tempTransfer.getState() != MoneyTransferStateDto.FINISHED) {
@@ -77,19 +75,19 @@ public class MoneyTransfersTest {
     }
 
     @Test
-    public void createMoneyTransfer_insufficientFunds_transferShouldFail() throws InterruptedException, ExecutionException {
+    public void createMoneyTransfer_insufficientFunds_transferShouldFail() {
         // Arrange
         var amount = new BigDecimal(101);
         var currencyCode = "EUR";
 
-        var fromAccount = accountsClient.openAccount(new BigDecimal(100), UUID.randomUUID()).get();
-        var toAccount = accountsClient.openAccount(new BigDecimal(100), UUID.randomUUID()).get();
+        var fromAccount = accountsClient.openAccount(new BigDecimal(100), UUID.randomUUID()).join();
+        var toAccount = accountsClient.openAccount(new BigDecimal(100), UUID.randomUUID()).join();
 
-        RetryUtils.retry(() -> accountsClient.getAccount(fromAccount.getAccountId()).get().orElse(null), 4);
-        RetryUtils.retry(() -> accountsClient.getAccount(toAccount.getAccountId()).get().orElse(null), 4);
+        RetryUtils.retry(() -> accountsClient.getAccount(fromAccount.getAccountId()).join().orElse(null), 4);
+        RetryUtils.retry(() -> accountsClient.getAccount(toAccount.getAccountId()).join().orElse(null), 4);
 
         // Act
-        var moneyTransfer = moneyTransfersClient.createMoneyTransfer(fromAccount.getAccountId(), toAccount.getAccountId(), amount, currencyCode).get();
+        var moneyTransfer = moneyTransfersClient.createMoneyTransfer(fromAccount.getAccountId(), toAccount.getAccountId(), amount, currencyCode).join();
 
         // Assert
         assertNotNull(moneyTransfer);
@@ -99,7 +97,7 @@ public class MoneyTransfersTest {
 
         moneyTransfer = RetryUtils.retry(() -> {
             var tempTransfer = moneyTransfersClient.getMoneyTransfer(moneyTransferId)
-                    .get()
+                    .join()
                     .orElse(null);
 
             if (tempTransfer != null && tempTransfer.getState() != MoneyTransferStateDto.FAILED) {
@@ -115,20 +113,20 @@ public class MoneyTransfersTest {
     }
 
     @Test
-    public void createMoneyTransfer_invalidAmount_transferShouldFail() throws InterruptedException, ExecutionException {
+    public void createMoneyTransfer_invalidAmount_transferShouldFail() {
         // Arrange
         var amount = new BigDecimal(0);
         var currencyCode = "EUR";
 
-        var fromAccount = accountsClient.openAccount(new BigDecimal(100), UUID.randomUUID()).get();
-        var toAccount = accountsClient.openAccount(new BigDecimal(100), UUID.randomUUID()).get();
+        var fromAccount = accountsClient.openAccount(new BigDecimal(100), UUID.randomUUID()).join();
+        var toAccount = accountsClient.openAccount(new BigDecimal(100), UUID.randomUUID()).join();
 
-        RetryUtils.retry(() -> accountsClient.getAccount(fromAccount.getAccountId()).get().orElse(null), 4);
-        RetryUtils.retry(() -> accountsClient.getAccount(toAccount.getAccountId()).get().orElse(null), 4);
+        RetryUtils.retry(() -> accountsClient.getAccount(fromAccount.getAccountId()).join().orElse(null), 4);
+        RetryUtils.retry(() -> accountsClient.getAccount(toAccount.getAccountId()).join().orElse(null), 4);
 
         // Act
         try {
-            var moneyTransfer = moneyTransfersClient.createMoneyTransfer(fromAccount.getAccountId(), toAccount.getAccountId(), amount, currencyCode).get();
+            var moneyTransfer = moneyTransfersClient.createMoneyTransfer(fromAccount.getAccountId(), toAccount.getAccountId(), amount, currencyCode).join();
             fail();
         } catch (Exception ex) {
             // Assert
@@ -145,18 +143,18 @@ public class MoneyTransfersTest {
     }
 
     @Test
-    public void createMoneyTransfer_originAndDestinationEqual_transferShouldFail() throws InterruptedException, ExecutionException {
+    public void createMoneyTransfer_originAndDestinationEqual_transferShouldFail() {
         // Arrange
         var amount = new BigDecimal(101);
         var currencyCode = "EUR";
 
-        var fromAccount = accountsClient.openAccount(new BigDecimal(100), UUID.randomUUID()).get();
+        var fromAccount = accountsClient.openAccount(new BigDecimal(100), UUID.randomUUID()).join();
 
-        RetryUtils.retry(() -> accountsClient.getAccount(fromAccount.getAccountId()).get().orElse(null), 4);
+        RetryUtils.retry(() -> accountsClient.getAccount(fromAccount.getAccountId()).join().orElse(null), 4);
 
         // Act
         try {
-            var moneyTransfer = moneyTransfersClient.createMoneyTransfer(fromAccount.getAccountId(), fromAccount.getAccountId(), amount, currencyCode).get();
+            var moneyTransfer = moneyTransfersClient.createMoneyTransfer(fromAccount.getAccountId(), fromAccount.getAccountId(), amount, currencyCode).join();
             fail();
         } catch (Exception ex) {
             // Assert

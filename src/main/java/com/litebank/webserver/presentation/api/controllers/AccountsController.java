@@ -1,15 +1,20 @@
 package com.litebank.webserver.presentation.api.controllers;
 
 import com.litebank.webserver.application.commands.accounts.OpenAccountCommand;
-import com.litebank.webserver.application.dtos.accounts.AccountOpenedDto;
+import com.litebank.webserver.application.dtos.accounts.AccountDto;
 import com.litebank.webserver.application.dtos.accounts.OpenAccountDto;
+import com.litebank.webserver.application.dtos.accounts.TransactionDto;
+import com.litebank.webserver.application.dtos.accounts.TransactionTypeDto;
 import com.litebank.webserver.application.queries.GetAccountProjectionQuery;
 import com.litebank.webserver.domain.model.accounts.Account;
 import com.litebank.webserver.domain.model.accounts.projections.AccountProjection;
+import com.litebank.webserver.domain.model.accounts.projections.TransactionProjection;
+import com.litebank.webserver.domain.model.accounts.projections.TransactionType;
 import com.litebank.webserver.presentation.api.di.CommandQueriesFactory;
 import io.javalin.http.Handler;
 
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class AccountsController {
     private CommandQueriesFactory commandQueriesFactory;
@@ -36,18 +41,35 @@ public class AccountsController {
         var handler = commandQueriesFactory.getQueryHandler(GetAccountProjectionQuery.class, AccountProjection.class);
         var getAccountProjectionQuery = new GetAccountProjectionQuery(accountId);
 
-        // TODO: missing map
         var account = handler.execute(getAccountProjectionQuery);
 
         if (account == null) {
             ctx.status(404);
         }
         else {
-            ctx.json(account);
+            ctx.json(toDto(account));
         }
     };
 
-    private static AccountOpenedDto toDto(Account account) {
-        return new AccountOpenedDto(account.getId(), account.getBalance(), account.getCustomerId());
+    private static AccountDto toDto(Account account) {
+        return new AccountDto(account.getId(), account.getBalance());
+    }
+
+    private static AccountDto toDto(AccountProjection account) {
+        var transactionsDto = account.getTransactions().stream().map(AccountsController::toDto).collect(Collectors.toList());
+
+        return new AccountDto(account.getAccountId(), account.getBalance(), transactionsDto);
+    }
+
+    private static TransactionDto toDto(TransactionProjection transactionProjection) {
+        return new TransactionDto(transactionProjection.getAmount(), toDto(transactionProjection.getType()), transactionProjection.getTimestamp());
+    }
+
+    private static TransactionTypeDto toDto(TransactionType transactionType) {
+        if (transactionType == TransactionType.CREDIT) {
+            return TransactionTypeDto.CREDIT;
+        }
+
+        return TransactionTypeDto.DEBIT;
     }
 }

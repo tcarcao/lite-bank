@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,9 +41,11 @@ public class CreditAccountFromTransferCommandHandlerTest {
         var moneyTransfer = new MoneyTransfer(moneyTransferId);
         moneyTransfer.apply(new MoneyTransferCreatedEvent(moneyTransferId, LocalDateTime.now(ZoneOffset.UTC), 0, fromAccountId, toAccountId, amount, currencyCode));
         when(moneyTransferRepository.getById(any(UUID.class))).thenReturn(moneyTransfer);
+        when(moneyTransferRepository.save(any())).thenReturn(CompletableFuture.completedFuture(moneyTransferId));
 
         var account = new Account(toAccountId);
         when(accountRepository.getById(any(UUID.class))).thenReturn(account);
+        when(accountRepository.save(any())).thenReturn(CompletableFuture.completedFuture(null));
 
         var command = new CreditAccountFromTransferCommand(amount, moneyTransferId);
         var handler = new CreditAccountFromTransferCommandHandler(moneyTransferRepository, accountRepository);

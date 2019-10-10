@@ -23,13 +23,11 @@ public class CreditAccountFromTransferCommandHandler implements CommandHandler<C
 
             Account accountToCredit = accountRepository.getById(moneyTransfer.getToAccountId());
 
+            moneyTransfer.debitedWithSuccess();
             accountToCredit.creditAmountFromMoneyTransfer(command.getAmount(), command.getMoneyTransferId());
 
-            accountRepository.save(accountToCredit);
-
-            moneyTransfer.debitedWithSuccess();
-
-            moneyTransferRepository.save(moneyTransfer);
+            moneyTransferRepository.save(moneyTransfer).join();
+            accountRepository.save(accountToCredit).join();
         } catch (AccountNotFoundException | MoneyTransferNotFoundException e) { }
     }
 }

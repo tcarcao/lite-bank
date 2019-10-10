@@ -4,9 +4,10 @@ import com.litebank.webserver.domain.model.exceptions.MoneyTransferNotFoundExcep
 import com.litebank.webserver.domain.model.moneytransfers.MoneyTransfer;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public interface MoneyTransferRepository {
     MoneyTransfer getById(UUID id) throws MoneyTransferNotFoundException;
 
-    UUID save(MoneyTransfer moneyTransfer);
+    CompletableFuture<UUID> save(MoneyTransfer moneyTransfer);
 }

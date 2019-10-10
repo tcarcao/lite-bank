@@ -29,7 +29,7 @@ public class MoneyTransferCommandHandler implements CommandHandlerR<MoneyTransfe
 
             MoneyTransfer transfer = new MoneyTransfer(UUID.randomUUID(), moneyTransferCommand.getFromAccountId(), moneyTransferCommand.getToAccountId(), moneyTransferCommand.getAmount(), moneyTransferCommand.getCurrencyCode());
 
-            var moneyTransferId = moneyTransferRepository.save(transfer);
+            var moneyTransferId = moneyTransferRepository.save(transfer).join();
 
             return new MoneyTransferCreationResultDto(moneyTransferId);
         } catch (AccountNotFoundException e) {

@@ -3,9 +3,8 @@ package com.litebank.clients.java.implementations;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.litebank.clients.java.interfaces.AccountsClient;
-import com.litebank.webserver.application.dtos.accounts.AccountOpenedDto;
+import com.litebank.webserver.application.dtos.accounts.AccountDto;
 import com.litebank.webserver.application.dtos.accounts.OpenAccountDto;
-import com.litebank.webserver.domain.model.accounts.projections.AccountProjection;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -26,7 +25,7 @@ public class AccountsClientImpl implements AccountsClient {
     }
 
     @Override
-    public CompletableFuture<AccountOpenedDto> openAccount(BigDecimal openingAmount, UUID customerId) {
+    public CompletableFuture<AccountDto> openAccount(BigDecimal openingAmount, UUID customerId) {
         String uri = basePath + "/accounts";
 
         var openAccountRequest = new OpenAccountDto(openingAmount, customerId);
@@ -44,7 +43,7 @@ public class AccountsClientImpl implements AccountsClient {
                     .thenApply(HttpResponse::body)
                     .thenApply(r -> {
                         try {
-                            return objectMapper.readValue(r, AccountOpenedDto.class);
+                            return objectMapper.readValue(r, AccountDto.class);
                         } catch (JsonProcessingException e) {
                             throw new RuntimeException(e);
                         }
@@ -59,7 +58,7 @@ public class AccountsClientImpl implements AccountsClient {
     }
 
     @Override
-    public CompletableFuture<Optional<AccountProjection>> getAccount(UUID accountId) {
+    public CompletableFuture<Optional<AccountDto>> getAccount(UUID accountId) {
         String uri = basePath + "/accounts/" + accountId;
 
         HttpRequest httpRequest = HttpRequest.newBuilder()
@@ -74,9 +73,9 @@ public class AccountsClientImpl implements AccountsClient {
                 .thenApply(HttpResponse::body)
                 .thenApply(r -> {
                     try {
-                        return Optional.of(objectMapper.readValue(r, AccountProjection.class));
+                        return Optional.of(objectMapper.readValue(r, AccountDto.class));
                     } catch (JsonProcessingException e) {
-                        Optional<AccountProjection> optionalAccountProjection = Optional.empty();
+                        Optional<AccountDto> optionalAccountProjection = Optional.empty();
                         return optionalAccountProjection;
                     }
                 });

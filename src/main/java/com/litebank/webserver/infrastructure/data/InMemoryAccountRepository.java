@@ -6,6 +6,8 @@ import com.litebank.webserver.domain.model.accounts.Account;
 import com.litebank.webserver.domain.model.exceptions.AccountNotFoundException;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class InMemoryAccountRepository implements AccountRepository {
 
@@ -32,9 +34,12 @@ public class InMemoryAccountRepository implements AccountRepository {
     }
 
     @Override
-    public void save(Account account) {
+    public CompletableFuture<Void> save(Account account) {
         var events = account.getNewEvents();
 
-        events.forEach(event -> eventBus.addEventToStream(accountsStreamId, event));
+        var completableFutures = events.stream().map(event -> eventBus.addEventToStream(accountsStreamId, event)).collect(Collectors.toList());
+        var completableFuturesArray = completableFutures.toArray(new CompletableFuture[completableFutures.size()]);
+
+        return CompletableFuture.allOf(completableFuturesArray);
     }
 }

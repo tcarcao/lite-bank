@@ -4,10 +4,7 @@ import com.litebank.webserver.application.interfaces.EventBus;
 import com.litebank.webserver.domain.model.Event;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -26,7 +23,8 @@ public class InMemoryEventStore implements EventBus {
     }
 
     @Override
-    public void addEventToStream(String streamId, Event event) {
+    public CompletableFuture<Void> addEventToStream(String streamId, Event event) {
+        var completableFuture = new CompletableFuture<Void>();
         this.streams.putIfAbsent(streamId, new ArrayList<>());
 
         // just to simulate some randomness in the time taken
@@ -44,10 +42,14 @@ public class InMemoryEventStore implements EventBus {
                 if (lastEvent == null || lastEvent.getVersion() < event.getVersion()) {
                     eventStreamObject.add(event);
                 }
+
+                completableFuture.complete(null);
             }
 
             notifyListeners(streamId, event);
         }, latencyAdding, TimeUnit.MILLISECONDS);
+
+        return completableFuture;
     }
 
     @Override

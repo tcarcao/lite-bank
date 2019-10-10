@@ -13,6 +13,7 @@ import org.mockito.Mockito;
 
 import java.math.BigDecimal;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,7 +35,7 @@ public class MoneyTransferCommandHandlerTest {
         var account = new Account(toAccountId);
         when(accountRepository.getById(any(UUID.class))).thenReturn(account);
 
-        when(moneyTransferRepository.save(any(MoneyTransfer.class))).thenReturn(moneyTransferId);
+        when(moneyTransferRepository.save(any(MoneyTransfer.class))).thenReturn(CompletableFuture.completedFuture(moneyTransferId));
 
         var command = new MoneyTransferCommand(fromAccountId, toAccountId, amount, currencyCode);
         var handler = new MoneyTransferCommandHandler(accountRepository, moneyTransferRepository);
@@ -162,7 +163,7 @@ public class MoneyTransferCommandHandlerTest {
         var account = new Account(fromAccountId);
         when(accountRepository.getById(any(UUID.class))).thenReturn(account);
 
-        when(moneyTransferRepository.save(any(MoneyTransfer.class))).thenReturn(moneyTransferId);
+        when(moneyTransferRepository.save(any(MoneyTransfer.class))).thenReturn(CompletableFuture.completedFuture(moneyTransferId));
 
         var command = new MoneyTransferCommand(fromAccountId, fromAccountId, amount, currencyCode);
         var handler = new MoneyTransferCommandHandler(accountRepository, moneyTransferRepository);

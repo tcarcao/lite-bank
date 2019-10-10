@@ -45,6 +45,10 @@ public class DI {
         return instance;
     }
 
+    public static void rebuild() {
+        instance = new DI();
+    }
+
     public EventBus getEventBus() {
         return eventBus;
     }

@@ -6,6 +6,8 @@ import com.litebank.webserver.domain.model.exceptions.MoneyTransferNotFoundExcep
 import com.litebank.webserver.domain.model.moneytransfers.MoneyTransfer;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class InMemoryMoneyTransferRepository implements MoneyTransferRepository {
     private final EventBus eventBus;
@@ -32,11 +34,12 @@ public class InMemoryMoneyTransferRepository implements MoneyTransferRepository 
     }
 
     @Override
-    public UUID save(MoneyTransfer moneyTransfer) {
+    public CompletableFuture<UUID> save(MoneyTransfer moneyTransfer) {
         var events = moneyTransfer.getNewEvents();
 
-        events.forEach(event -> eventBus.addEventToStream(moneyTransfersStreamId, event));
+        var completableFutures = events.stream().map(event -> eventBus.addEventToStream(moneyTransfersStreamId, event)).collect(Collectors.toList());
+        var completableFuturesArray = completableFutures.toArray(new CompletableFuture[completableFutures.size()]);
 
-        return moneyTransfer.getId();
+        return CompletableFuture.allOf(completableFuturesArray).thenApply(v -> moneyTransfer.getId());
     }
 }
