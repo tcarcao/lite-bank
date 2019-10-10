@@ -53,7 +53,7 @@ An overview of the system's high-level architecture is depicted next.
 
 ## REST API
 
-The system exposes an REST API. To better document this REST API it was written an api specification using the Open Api Specification present in REFFFF and depicted next:
+The system exposes an REST API. To better document this REST API it was written an api specification using the Open Api Specification present in [open-api-specification.yml](docs/open-api-specification.yml) and depicted next:
 
 #### lite-bank api swagger
 ![alt tag](docs/images/swagger_api.png)
@@ -103,7 +103,7 @@ java -jar build/libs/lite-bank-0.0.1-all.jar
 
 ## Docker
 
-Even though the application can be ran using one single jar, it also exists an Dockerfile (REFF) specifying the configurations to run the application inside a Docker container and a bash script `builddocker.sh` that builds the image of the container.
+Even though the application can be ran using one single jar, it also exists a [Dockerfile](docker/Dockerfile) specifying the configurations to run the application inside a Docker container and a bash script `builddocker.sh` that builds the image of the container.
 
 ## Frameworks and language
 This project was developed using JDK 11. The following frameworks were used:
