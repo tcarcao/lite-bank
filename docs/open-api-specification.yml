@@ -1,0 +1,235 @@
+swagger: "2.0"
+info:
+  description: "This is a bank with lite operations. For now it only support opening an account and getting it. While also allowing money transfers between two accounts."
+  version: "0.0.1"
+  title: "Swagger lite-bank"
+  contact:
+    email: "tiago.carcao@gmail.com"
+host: "petstore.swagger.io"
+basePath: "/v1"
+tags:
+- name: "transfer"
+  description: "moneytransfers allowed between two valid accounts"
+- name: "account"
+  description: "accounts present in lite-bank"
+schemes:
+- "https"
+- "http"
+paths:
+  /transfers:
+    post:
+      tags:
+      - "transfer"
+      summary: "Start a new money transfer between two accounts"
+      description: ""
+      operationId: "startTransfer"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Pet object that needs to be added to the store"
+        required: true
+        schema:
+          $ref: "#/definitions/TransferRequest"
+      responses:
+        202:
+          description: "money transfer accepted"
+          schema:
+            $ref: "#/definitions/MoneyTransfer"
+        400:
+          description: "Bad request while doing the request"
+          schema:
+            $ref: "#/definitions/MoneyTransferValidation"
+  /transfers/{moneyTransferId}:
+    get:
+      tags:
+      - "transfer"
+      summary: "Gets the status of a money transfer by its id"
+      operationId: "findMoneyTransferById"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "moneyTransferId"
+        in: "path"
+        description: "Id of the moneytransfer to retrieve its status"
+        required: true
+        type: "string"
+        format: "uuid"
+      responses:
+        200:
+          description: "The money transfer requested"
+          schema:
+            $ref: "#/definitions/MoneyTransfer"
+        404:
+          description: "When the money transfer does not exist"
+  /accounts:
+    post:
+      tags:
+      - "account"
+      summary: "Open a new account in the bank"
+      description: ""
+      operationId: "openAccount"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "The account values that should be used to open the account"
+        required: true
+        schema:
+          $ref: "#/definitions/Account"
+      responses:
+        201:
+          description: "account opened"
+          schema:
+            $ref: "#/definitions/Account"
+        400:
+          description: "Bad request while doing the request"
+  /accounts/{accountId}:
+    get:
+      tags:
+      - "account"
+      summary: "Gets an account from the bank"
+      operationId: "findAccountById"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "accountId"
+        in: "path"
+        description: "Id of the account to retrieve"
+        required: true
+        type: "string"
+        format: "uuid"
+      responses:
+        200:
+          description: "The account requested"
+          schema:
+            $ref: "#/definitions/Account"
+        404:
+          description: "When the account does not exist"
+definitions:
+  TransferRequest:
+    type: "object"
+    required:
+    - "fromAccountId"
+    - "toAccountId"
+    - "amount"
+    - "currencyCode"
+    properties:
+      fromAccountId:
+        type: "string"
+        example: "uuid"
+      toAccountId:
+        type: "string"
+        example: "uuid"
+      amount:
+        type: "number"
+        format: "double"
+      currencyCode:
+        type: "string"
+  MoneyTransfer:
+    type: "object"
+    required:
+    - "moneyTransferId"
+    - "fromAccountId"
+    - "toAccountId"
+    - "amount"
+    - "currencyCode"
+    - "state"
+    - "error"
+    properties:
+      moneyTransferId:
+        type: "string"
+        example: "uuid"
+      fromAccountId:
+        type: "string"
+        example: "uuid"
+      toAccountId:
+        type: "string"
+        example: "uuid"
+      amount:
+        type: "number"
+        format: "double"
+      currencyCode:
+        type: "string"
+      state:
+        type: "string"
+        description: "transfer state in the bank"
+        enum:
+        - "scheduled"
+        - "failed"
+        - "finished"
+      error:
+        $ref: "#/definitions/MoneyTransferError"
+  MoneyTransferError:
+    type: "object"
+    required:
+    - "code"
+    - "message"
+    properties:
+      code:
+        type: "string"
+      message:
+        type: "string"
+  OpenAccount:
+    type: "object"
+    required:
+    - "openingAmount"
+    - "customerId"
+    properties:
+      openingAmount:
+        type: "number"
+        format: "double"
+      customerId:
+        type: "string"
+        example: "uuid"
+  Account:
+    type: "object"
+    required:
+    - "accountId"
+    - "balance"
+    - "transactions"
+    properties:
+      accountId:
+        type: "string"
+        format: "uuid"
+      balance:
+        type: "number"
+        format: "double"
+      transactions:
+        type: "array"
+        items:
+          $ref: "#/definitions/Transaction"
+  Transaction:
+    type: "object"
+    required:
+    - "amount"
+    - "type"
+    - "timestamp"
+    properties:
+      accountId:
+        type: "string"
+        format: "uuid"
+      type:
+        type: "string"
+        enum:
+        - "credit"
+        - "debit"
+      timestamp:
+        type: "string"
+        example: "date"
+  MoneyTransferValidation:
+    type: "object"
+    required:
+    - "validation"
+    - "message"
+    properties:
+      validation:
+        type: "string"
+      message:
+        type: "string"
