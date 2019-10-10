@@ -15,8 +15,12 @@ import com.litebank.webserver.domain.model.moneytransfers.events.MoneyTransferDe
 import com.litebank.webserver.domain.model.moneytransfers.events.MoneyTransferFailedDueToInvalidStateEvent;
 import com.litebank.webserver.domain.model.moneytransfers.events.MoneyTransferSuccessfulEvent;
 import com.litebank.webserver.presentation.api.di.CommandQueriesFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ProjectionsEventsConsumer {
+    final Logger logger = LoggerFactory.getLogger(ProjectionsEventsConsumer.class);
+
     private final EventBus eventBus;
     private final String accountsStreamId;
     private final String moneyTransfersStreamId;
@@ -31,7 +35,7 @@ public class ProjectionsEventsConsumer {
 
     public void initialize() {
         eventBus.subscribeToStream(accountsStreamId, events -> {
-            System.out.println("Consuming accounts projection: " + events);
+            logger.info("account :: {}", events);
 
             for (var event : events) {
                 if (event instanceof AccountOpenedEvent) {
@@ -47,7 +51,7 @@ public class ProjectionsEventsConsumer {
         });
 
         eventBus.subscribeToStream(moneyTransfersStreamId, events -> {
-            System.out.println("Consuming accounts projection: " + events);
+            logger.info("moneyTransfer :: {}", events);
 
             for (var event : events) {
                 if (event instanceof MoneyTransferCreatedEvent) {

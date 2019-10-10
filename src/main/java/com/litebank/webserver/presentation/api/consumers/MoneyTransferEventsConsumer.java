@@ -10,8 +10,12 @@ import com.litebank.webserver.domain.model.accounts.events.AccountDebitFailedDue
 import com.litebank.webserver.domain.model.accounts.events.AccountDebitedEvent;
 import com.litebank.webserver.domain.model.moneytransfers.events.MoneyTransferCreatedEvent;
 import com.litebank.webserver.presentation.api.di.CommandQueriesFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MoneyTransferEventsConsumer {
+    final Logger logger = LoggerFactory.getLogger(MoneyTransferEventsConsumer.class);
+
     private final EventBus eventBus;
     private final String moneyTransfersStreamId;
     private final String accountsStreamId;
@@ -26,7 +30,7 @@ public class MoneyTransferEventsConsumer {
 
     public void initialize() {
         eventBus.subscribeToStream(moneyTransfersStreamId, events -> {
-            System.out.println("Consuming money transfer: " + events);
+            logger.info("moneyTransfer :: {}", events);
 
             for (var event : events) {
                 if (event instanceof MoneyTransferCreatedEvent) {
@@ -36,7 +40,7 @@ public class MoneyTransferEventsConsumer {
         });
 
         eventBus.subscribeToStream(accountsStreamId, events -> {
-            System.out.println("Consuming accounts: " + events);
+            logger.info("account :: {}", events);
 
             for (var event : events) {
                 if (event instanceof AccountDebitedEvent) {
