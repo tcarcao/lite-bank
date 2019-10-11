@@ -3,9 +3,9 @@ package com.litebank.clients.java.implementations;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.litebank.clients.java.interfaces.MoneyTransfersClient;
-import com.litebank.webserver.application.dtos.moneytransfers.MoneyTransferDto;
-import com.litebank.webserver.application.dtos.moneytransfers.MoneyTransferValidationDto;
-import com.litebank.webserver.application.dtos.moneytransfers.TransferRequestDto;
+import com.litebank.service.application.dtos.moneytransfers.MoneyTransferDto;
+import com.litebank.service.application.dtos.moneytransfers.MoneyTransferValidationDto;
+import com.litebank.service.application.dtos.moneytransfers.TransferRequestDto;
 
 import java.math.BigDecimal;
 import java.net.URI;

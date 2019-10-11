@@ -1,6 +1,6 @@
 package com.litebank.clients.java.interfaces;
 
-import com.litebank.webserver.application.dtos.accounts.AccountDto;
+import com.litebank.service.application.dtos.accounts.AccountDto;
 
 import java.math.BigDecimal;
 import java.util.Optional;

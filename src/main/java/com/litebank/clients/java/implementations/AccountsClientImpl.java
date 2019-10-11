@@ -3,8 +3,8 @@ package com.litebank.clients.java.implementations;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.litebank.clients.java.interfaces.AccountsClient;
-import com.litebank.webserver.application.dtos.accounts.AccountDto;
-import com.litebank.webserver.application.dtos.accounts.OpenAccountDto;
+import com.litebank.service.application.dtos.accounts.AccountDto;
+import com.litebank.service.application.dtos.accounts.OpenAccountDto;
 
 import java.math.BigDecimal;
 import java.net.URI;

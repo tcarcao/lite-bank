@@ -1,6 +1,6 @@
 package com.litebank.clients.java.interfaces;
 
-import com.litebank.webserver.application.dtos.moneytransfers.MoneyTransferDto;
+import com.litebank.service.application.dtos.moneytransfers.MoneyTransferDto;
 
 import java.math.BigDecimal;
 import java.util.Optional;
