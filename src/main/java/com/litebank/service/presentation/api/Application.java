@@ -1,8 +1,12 @@
 package com.litebank.service.presentation.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.litebank.service.presentation.api.configuration.Path;
 import com.litebank.service.presentation.api.di.DI;
 import io.javalin.Javalin;
+import io.javalin.plugin.json.JavalinJackson;
 
 public class Application {
     private Javalin javalin;
@@ -24,6 +28,7 @@ public class Application {
         var projectionsEventsConsumer = DI.getInstance().getProjectionsEventsConsumer();
         projectionsEventsConsumer.initialize();
 
+        configureJavalin();
         Javalin app = Javalin.create().start(port);
 
         app.post(Path.TRANSFERS, DI.getInstance().getMoneyTransfersController().startTransfer);
@@ -39,13 +44,17 @@ public class Application {
         return port;
     }
 
-    public void start() {
-        this.javalin.start();
-    }
-
     public void stop() {
         this.javalin.stop();
 
         DI.rebuild();
+    }
+
+    private static void configureJavalin() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        JavalinJackson.configure(objectMapper);
     }
 }
