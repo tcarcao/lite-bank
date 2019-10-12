@@ -2,6 +2,8 @@ package com.litebank.clients.java.implementations;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.litebank.clients.java.interfaces.AccountsClient;
 import com.litebank.service.application.dtos.accounts.AccountDto;
 import com.litebank.service.application.dtos.accounts.OpenAccountDto;
@@ -22,6 +24,9 @@ public class AccountsClientImpl implements AccountsClient {
     public AccountsClientImpl(String basePath) {
         this.basePath = basePath;
         this.objectMapper = new ObjectMapper();
+
+        this.objectMapper.registerModule(new JavaTimeModule());
+        this.objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
     @Override
