@@ -1,7 +1,7 @@
 # lite-bank: A lite traceable, scalable and well though bank
 This project builds a bank with account opening and get operations and with money transfer operations.
 
-To achieve this a system built with CQRS pattern along with EventSourcing to allow the traceability, scalability, transactional problems.
+To achieve this a system built with CQRS pattern along with EventSourcing to allow the traceability, scalability, and solve common transactional challenges in an asynchronous way.
 
 ## Decision log
 
@@ -28,7 +28,7 @@ Decisions:
 - By following this approach the solution is async by conception and the clients should deal with this behavior.
 - When creating a money transfer, if no parameters violate the creation flow, the transfer is accepted. This allows the clients to then ask the server for the status of the transfer.
 - The transfer will occur by a series of events, that are detected and provoque other events.
-- When a conclusion is reached, the projection is updated and the client will get its state
+- When a transfer is completed (sucess or fail), the projection is updated and the client will get its state
 - Concurrency is addressed with events. This stream of events allow to serialize the values of the entities, and to retrieve and aply them properly.
 - Due to the operations implemented only two bounding contexts were identified: Account and MoneyTransfer.
 - As the application should be called by other applications, a java client was developed to allow these applications to easily integrate with our service. Other clients were left as future work.
